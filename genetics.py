@@ -9,8 +9,8 @@ class Individual:
         matrix_weights = None,
         snake_position = [10,10],
         heading = "N",
-        occupied_blocks = [(10,10),(10,9)]
-        length
+        occupied_blocks = [(10,10),(10,9)],
+        length = None,
     ):
         if matrix_weights is None:
             self.matrix_weights = np.random.rand(4,5)

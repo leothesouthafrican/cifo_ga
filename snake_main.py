@@ -10,3 +10,9 @@ def softmax(x):
     return e_x / e_x.sum()
 
 
+snake_1 = Individual()
+
+snake_1.distance_computer()
+print(snake_1.heading)
+
+print(snake_1.relative_position)

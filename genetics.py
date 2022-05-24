@@ -1,3 +1,4 @@
+from dis import dis
 from random import shuffle, choice, sample, random
 from operator import attrgetter
 from copy import deepcopy
@@ -7,33 +8,56 @@ class Individual:
     def __init__(
         self,
         matrix_weights = None,
-        snake_position = [10,10],
-        heading = "N",
+        snake_head_coordinates = [1,1],
+        heading = "E",
         occupied_blocks = [(10,10),(10,9)],
         length = None,
+        relative_position = []
     ):
         if matrix_weights is None:
             self.matrix_weights = np.random.rand(4,5)
 
-        self.snake_position = snake_position
+        self.snake_head_coordinates = snake_head_coordinates
         self.heading = heading
         self.occupied_blocks = occupied_blocks
         self.length = len(self.occupied_blocks)
+        self.relative_position = relative_position
 
-    def get_fitness(self):
-        raise Exception("You need to monkey patch the fitness path.")
+    def distance_computer(self):
 
-    def __len__(self):
-        return len(self.length)
+        print("Works!")
+        if self.heading == "N":
+            print("If Works!")
+            distance_left = self.snake_head_coordinates[0]
+            distance_right = 19 - self.snake_head_coordinates[0]
+            distance_forward = 19 - self.snake_head_coordinates[1]
 
-    def __getitem__(self, snake_position):
-        return self.representation[snake_position]
+            self.relative_position = [distance_left,distance_forward,distance_right]
+            
 
-    def __setitem__(self, snake_position, value):
-        self.representation[snake_position] = value
+        elif self.heading == "E":
+            distance_left = 19 - self.snake_head_coordinates[1]
+            distance_right = self.snake_head_coordinates[1]
+            distance_forward = 19 - self.snake_head_coordinates[0]
 
-    def __repr__(self):
-        return f"Individual(size={len(self.representation)}); Fitness: {self.fitness}"
+            self.relative_position = [distance_left, distance_forward, distance_right]
+
+        elif self.heading == "S":
+            distance_left = 19 - self.snake_head_coordinates[0]
+            distance_right = self.snake_head_coordinates[0]
+            distance_forward = self.snake_head_coordinates[1]
+
+            self.relative_position = [distance_left, distance_forward, distance_right]
+
+        elif self.heading == "W":
+            distance_left = self.snake_head_coordinates[1]
+            distance_right = 19 - self.snake_head_coordinates[1]
+            distance_forward = self.snake_head_coordinates[0]
+
+            self.relative_position = [distance_left, distance_forward, distance_right]
+
+    def __str__(self):
+           return f"Current relative position: {self.distance_computer}"
 
 class Population:
     def __init__(self, size, optim, **kwargs):
@@ -81,7 +105,7 @@ class Population:
                     least = min(new_pop, key=attrgetter("fitness"))
                 elif self.optim == "min":
                     least = max(new_pop, key=attrgetter("fitness"))
-                new_pop.pop(new_pop.index(least))
+                new_pop.pop(new_pop.index([least]))
                 new_pop.append(elite)
 
             self.individuals = new_pop
@@ -94,8 +118,9 @@ class Population:
     def __len__(self):
         return len(self.individuals)
 
-    def __getitem__(self, position):
-        return self.individuals[position]
+    def __getitem__(self, head_coordinates):
+        return self.individuals[head_coordinates]
 
     def __repr__(self):
         return f"Population(size={len(self.individuals)}, individual_size={len(self.individuals[0])})"
+

@@ -1,26 +1,27 @@
 import numpy as np
 import math
-from genetics import Individual, Environment, Population
+from genetics import Individual, Environment, NN_Engine
 
 from random import random
 from copy import deepcopy
 from operator import attrgetter
 
-def softmax(x):
-    e_x = np.exp(x)
-    return e_x/ e_x.sum()
 
-environment_1 = Environment(environment_size=15, apple_position = [13,13])
-snake_1 = Individual(environment_1, snake_head_coordinates=[10,10], heading="E")
+environment_1 = Environment(environment_size=10)
+snake_1 = Individual(environment_1, snake_head_coordinates = None, heading="N")
+engine_1 = NN_Engine(snake_1,environment_1)
+
 
 snake_1.distance_computer()
 
-hidden_layer_1 = np.dot(snake_1.relative_position, snake_1.matrix_weights_1)
+print(snake_1.__str__())
+print("**********")
 
-pre_bias_output = np.dot(hidden_layer_1,snake_1.matrix_weights_2)
+while snake_1.available_epochs > 0:
+    engine_1.update_individual_epoch()
 
-bias_added_vector = snake_1.bias_vector + pre_bias_output
+    print(snake_1.__str__())
+    print("+++++++")
 
-final_output = softmax(bias_added_vector)
 
-print(final_output)
+print(snake_1.__str__())

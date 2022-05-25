@@ -1,5 +1,4 @@
 from dis import dis
-from msilib.schema import Class
 from random import shuffle, choice, sample, random
 from operator import attrgetter
 from copy import deepcopy
@@ -13,7 +12,7 @@ class Environment:
         self.environment_size = environment_size
 
         if self.apple_position is None:
-            self.apple_position = np.random.randint(low=1, high=self.environment_size, size=2)
+            self.apple_position = list(np.random.randint(low=1, high=(self.environment_size - 1), size=2))
         
         if self.borders == []:
             for x in range(0,self.environment_size):
@@ -35,30 +34,37 @@ class Individual:
         current_environment,
         matrix_weights_1 = None,
         matrix_weights_2 = None,
-        bias_vector = None,
+        bias_vector_1 = None,
+        bias_vector_2 = None,
         snake_head_coordinates = None,
         heading = "N",
-        occupied_blocks = [(10,10),(10,9)],
-        length = None,
-        relative_position = []
+        occupied_blocks = None,
+        relative_position = [],
+        available_epochs = 200,
+        fitness = None
     ):
 
         if matrix_weights_1 is None:
             self.matrix_weights_1 = np.random.rand(4,5)
         if matrix_weights_2 is None:
             self.matrix_weights_2 = np.random.rand(5,3)
-        if bias_vector is None:
-            self.bias_vector = np.random.rand(1,3)
+        if bias_vector_1 is None:
+            self.bias_vector_1 = np.random.rand(1,5)
+        if bias_vector_2 is None:
+            self.bias_vector_2 = np.random.rand(1,3)
 
         self.environment = current_environment
         self.snake_head_coordinates = snake_head_coordinates
         self.heading = heading
         self.occupied_blocks = occupied_blocks
-        self.length = len(self.occupied_blocks)
         self.relative_position = relative_position
+        self.initial_epochs = available_epochs
+        self.available_epochs = available_epochs
+        self.fitness = fitness
 
         if self.snake_head_coordinates is None:
-            self.snake_head_coordinates = np.random.randint(low=1, high=self.environment.environment_size, size=2)
+            self.snake_head_coordinates = np.random.randint(low=2, high=(self.environment.environment_size - 1), size=2)
+            self.occupied_blocks = [list(self.snake_head_coordinates- np.asarray([0,1])),list(self.snake_head_coordinates)]
 
 
     def distance_computer(self):
@@ -87,6 +93,7 @@ class Individual:
             degrees += 270
             
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
+            
 
         elif self.heading == "S":
             distance_left = (environment.environment_size - 1) - self.snake_head_coordinates[0]
@@ -97,6 +104,7 @@ class Individual:
             degrees += 180
 
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
+            
 
         elif self.heading == "W":
             distance_left = self.snake_head_coordinates[1]
@@ -109,15 +117,131 @@ class Individual:
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
 
     def __str__(self):
-           return f"Current relative position: {self.distance_computer}"
+        return f"Av. Epoch: {self.available_epochs}\nCurrent relative position: {self.relative_position} \nCurrent Heading: {self.heading} \nCurrent Occupied Blocks: {self.occupied_blocks} \nSnake Fitness: {self.fitness}"
     
-    class NN_engine:
-        def __init__(self, individual):
-            self.individual = individual
+class NN_Engine:
 
-        def softmax(x):
-            e_x = np.exp(x)
-            return e_x/ e_x.sum()
+    def __init__(self, individual, environment):
+        self.individual = individual
+        self.environment = environment
+
+    def softmax(self,x):
+        e_x = np.exp(x)
+        return e_x/ e_x.sum()
+    
+    def sigmoid(self,x):
+        return 1/(1 + np.exp(-x))
+
+    def compute_layers(self):
+        individual = self.individual
+
+        hidden_layer_1 = np.dot(individual.relative_position, individual.matrix_weights_1) #+ individual.bias_vector_1
+
+        activated_layer_1 = self.sigmoid(hidden_layer_1)
+
+        pre_output = np.dot(activated_layer_1,individual.matrix_weights_2) + individual.bias_vector_2
+
+        final_output = self.softmax(pre_output)
+
+        return final_output
+
+    def chosen_direction(self):
+        output_vector = self.compute_layers()
+        max_index = np.argmax(output_vector)
+
+        return max_index
+
+    def check_for_apple(self):
+        environment = self.environment
+        individual = self.individual
+        if individual.snake_head_coordinates != environment.apple_position:
+            return True
+    
+    def check_for_borders(self, new_head_position):
+        environment = self.environment
+        for border_block in environment.borders:
+            if border_block == new_head_position:
+                return True
+
+    def check_for_occupied_block(self, new_head_position):
+        individual = self.individual
+        for block in individual.occupied_blocks[:-1]:
+            if block == new_head_position:
+                return True
+
+
+    def update_individual_epoch(self):
+        individual = self.individual
+        environment = self.environment
+        direction = self.chosen_direction()
+        if (direction == 0 and individual.heading == "N") or (direction == 2 and individual.heading == "S") or (direction == 1 and individual.heading == "W"):
+            new_snake_head = list(np.asarray(individual.snake_head_coordinates) - np.asarray([1,0]))
+            individual.heading = "W"
+
+        elif (direction == 0 and individual.heading == "E") or (direction == 2 and individual.heading == "W") or (direction == 1 and individual.heading == "N"):
+            new_snake_head = list(np.asarray(individual.snake_head_coordinates) + np.asarray([0,1]))
+            individual.heading = "N"
+            
+        elif (direction == 0 and individual.heading == "S") or (direction == 2 and individual.heading == "N") or (direction == 1 and individual.heading == "E"):
+            new_snake_head = list(np.asarray(individual.snake_head_coordinates) + np.asarray([1,0]))
+            individual.heading = "E"
+            
+        elif (direction == 0 and individual.heading == "W") or (direction == 2 and individual.heading == "E") or (direction == 1 and individual.heading == "S"):
+            new_snake_head = list(np.asarray(individual.snake_head_coordinates) - np.asarray([0,1]))
+            individual.heading = "S"
+
+
+        individual.occupied_blocks.append(new_snake_head)
+        #print(individual.occupied_blocks)
+        individual.snake_head_coordinates = new_snake_head
+        
+        if self.check_for_borders(individual.snake_head_coordinates):
+            self.counter = individual.available_epochs
+            #Get fitness
+            print("get fitness_border")
+            individual.available_epochs = 0
+            
+
+        if self.check_for_occupied_block(individual.snake_head_coordinates):
+            self.counter = individual.available_epochs
+            #Get fitness
+            print("get fitness_occupied")
+            individual.available_epochs = 0
+
+
+        #print(f"New snake head: {new_snake_head} \nApple Position: {environment.apple_position}")
+        if self.check_for_apple():
+            individual.occupied_blocks = individual.occupied_blocks[1:]
+        else:
+            print("APPLE EATEN!")
+            print(environment.apple_position)
+            print(individual.snake_head_coordinates)
+            new_random_coordinates = np.random.randint(low=1, high=(environment.environment_size - 1), size=2)
+            environment.apple_position = list(new_random_coordinates)
+
+        if individual.available_epochs == 0:
+            self.counter = 200
+            self.get_fitness()
+
+
+        
+        individual.distance_computer()
+        individual.available_epochs -= 1
+
+    
+    def get_fitness(self):
+        print("In function")
+        individual = self.individual
+
+        steps = individual.initial_epochs - self.counter
+        score = 10
+
+        fitness = ((2**((steps)/10)) * score )+ steps
+        print(steps)
+        individual.fitness = fitness
+
+    def __str__(self):
+        return f"Direction Chosen: {self.chosen_direction()} \nNew Snake: {self.individual.occupied_blocks} \nNew Heading: {self.individual.heading}"   
 
 class Population:
     def __init__(self, size, optim, **kwargs):

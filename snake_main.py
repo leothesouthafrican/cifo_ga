@@ -20,6 +20,7 @@ print("**********")
 while snake_1.available_epochs > 0:
     engine_1.update_individual_epoch()
 
+    print(environment_1.__str__())
     print(snake_1.__str__())
     print("+++++++")
 

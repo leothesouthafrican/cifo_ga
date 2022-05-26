@@ -27,7 +27,8 @@ class Environment:
                         self.borders.append([x,y])
                     elif y == 0 and x != 0:
                         self.borders.append([x,y])
-        
+    def __str__(self):
+        print(f"Apple Position: {self.apple_position}\nEnvironment Size: {self.environment_size}")
 class Individual:
     def __init__(
         self,
@@ -40,7 +41,7 @@ class Individual:
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 200,
+        available_epochs = 500,
         fitness = None
     ):
 
@@ -66,7 +67,6 @@ class Individual:
             self.snake_head_coordinates = np.random.randint(low=2, high=(self.environment.environment_size - 1), size=2)
             self.occupied_blocks = [list(self.snake_head_coordinates- np.asarray([0,1])),list(self.snake_head_coordinates)]
 
-
     def distance_computer(self):
 
         #Loading environment into method for easier access
@@ -83,7 +83,6 @@ class Individual:
 
             self.relative_position = [distance_left,distance_forward,distance_right, round(np.sin(degrees),2)]
             
-
         elif self.heading == "E":
             distance_left = (environment.environment_size - 1) - self.snake_head_coordinates[1]
             distance_right = self.snake_head_coordinates[1]
@@ -94,7 +93,6 @@ class Individual:
             
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
             
-
         elif self.heading == "S":
             distance_left = (environment.environment_size - 1) - self.snake_head_coordinates[0]
             distance_right = self.snake_head_coordinates[0]
@@ -105,7 +103,6 @@ class Individual:
 
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
             
-
         elif self.heading == "W":
             distance_left = self.snake_head_coordinates[1]
             distance_right = (environment.environment_size - 1) - self.snake_head_coordinates[1]
@@ -135,7 +132,7 @@ class NN_Engine:
     def compute_layers(self):
         individual = self.individual
 
-        hidden_layer_1 = np.dot(individual.relative_position, individual.matrix_weights_1) #+ individual.bias_vector_1
+        hidden_layer_1 = np.dot(individual.relative_position, individual.matrix_weights_1) + individual.bias_vector_1
 
         activated_layer_1 = self.sigmoid(hidden_layer_1)
 
@@ -169,7 +166,6 @@ class NN_Engine:
             if block == new_head_position:
                 return True
 
-
     def update_individual_epoch(self):
         individual = self.individual
         environment = self.environment
@@ -190,24 +186,10 @@ class NN_Engine:
             new_snake_head = list(np.asarray(individual.snake_head_coordinates) - np.asarray([0,1]))
             individual.heading = "S"
 
-
         individual.occupied_blocks.append(new_snake_head)
         #print(individual.occupied_blocks)
         individual.snake_head_coordinates = new_snake_head
-        
-        if self.check_for_borders(individual.snake_head_coordinates):
-            self.counter = individual.available_epochs
-            #Get fitness
-            print("get fitness_border")
-            individual.available_epochs = 0
-            
-
-        if self.check_for_occupied_block(individual.snake_head_coordinates):
-            self.counter = individual.available_epochs
-            #Get fitness
-            print("get fitness_occupied")
-            individual.available_epochs = 0
-
+        individual.available_epochs -= 1
 
         #print(f"New snake head: {new_snake_head} \nApple Position: {environment.apple_position}")
         if self.check_for_apple():
@@ -219,25 +201,39 @@ class NN_Engine:
             new_random_coordinates = np.random.randint(low=1, high=(environment.environment_size - 1), size=2)
             environment.apple_position = list(new_random_coordinates)
 
-        if individual.available_epochs == 0:
-            self.counter = 200
+        if self.check_for_borders(individual.snake_head_coordinates):
+            self.counter = individual.available_epochs
+            #Get fitness
+            print("get fitness_border")
+            individual.available_epochs = 0            
             self.get_fitness()
 
+        elif self.check_for_occupied_block(individual.snake_head_coordinates):
+            self.counter = individual.available_epochs
+            #Get fitness
+            print("get fitness_occupied")
+            individual.available_epochs = 0
+            self.get_fitness()
 
-        
+        elif individual.available_epochs == 0:
+            self.counter = 0
+            self.get_fitness()
+
         individual.distance_computer()
-        individual.available_epochs -= 1
 
-    
     def get_fitness(self):
-        print("In function")
         individual = self.individual
 
+        print("In function")
+        print(f"Counter: {self.counter}")
+        print(f"Initial Epochs: {individual.initial_epochs}")
+        print(f"Score: {len(individual.occupied_blocks)}")
+
         steps = individual.initial_epochs - self.counter
-        score = 10
+        score = len(individual.occupied_blocks)
+        print(f"Steps: {steps}")
 
         fitness = ((2**((steps)/10)) * score )+ steps
-        print(steps)
         individual.fitness = fitness
 
     def __str__(self):

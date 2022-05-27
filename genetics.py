@@ -1,4 +1,5 @@
 from dis import dis
+from pickle import NONE
 from random import shuffle, choice, sample, random
 from operator import attrgetter
 from copy import deepcopy
@@ -28,7 +29,8 @@ class Environment:
                     elif y == 0 and x != 0:
                         self.borders.append([x,y])
     def __str__(self):
-        print(f"Apple Position: {self.apple_position}\nEnvironment Size: {self.environment_size}")
+        return f"Apple Position: {self.apple_position})\nEnvironment Size: {self.environment_size}"
+
 class Individual:
     def __init__(
         self,
@@ -37,12 +39,14 @@ class Individual:
         matrix_weights_2 = None,
         bias_vector_1 = None,
         bias_vector_2 = None,
+        representation = None,
         snake_head_coordinates = None,
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
         available_epochs = 500,
-        fitness = None
+        fitness = None,
+        fitness_function = "fitness_function_1",
     ):
 
         if matrix_weights_1 is None:
@@ -62,6 +66,8 @@ class Individual:
         self.initial_epochs = available_epochs
         self.available_epochs = available_epochs
         self.fitness = fitness
+        self.representation = representation
+        self.fitness_function = fitness_function
 
         if self.snake_head_coordinates is None:
             self.snake_head_coordinates = np.random.randint(low=2, high=(self.environment.environment_size - 1), size=2)
@@ -112,6 +118,12 @@ class Individual:
             degrees += 90
 
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
+
+    def create_representation(self):
+        weights_1_vector = np.reshape(self.matrix_weights_1, (1,20))
+        weights_2_vector = np.reshape(self.matrix_weights_2, (1,15))
+        representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])
+        self.representation = representation
 
     def __str__(self):
         return f"Av. Epoch: {self.available_epochs}\nCurrent relative position: {self.relative_position} \nCurrent Heading: {self.heading} \nCurrent Occupied Blocks: {self.occupied_blocks} \nSnake Fitness: {self.fitness}"
@@ -167,9 +179,11 @@ class NN_Engine:
                 return True
 
     def update_individual_epoch(self):
+
         individual = self.individual
         environment = self.environment
         direction = self.chosen_direction()
+
         if (direction == 0 and individual.heading == "N") or (direction == 2 and individual.heading == "S") or (direction == 1 and individual.heading == "W"):
             new_snake_head = list(np.asarray(individual.snake_head_coordinates) - np.asarray([1,0]))
             individual.heading = "W"
@@ -187,17 +201,13 @@ class NN_Engine:
             individual.heading = "S"
 
         individual.occupied_blocks.append(new_snake_head)
-        #print(individual.occupied_blocks)
         individual.snake_head_coordinates = new_snake_head
         individual.available_epochs -= 1
 
-        #print(f"New snake head: {new_snake_head} \nApple Position: {environment.apple_position}")
         if self.check_for_apple():
             individual.occupied_blocks = individual.occupied_blocks[1:]
         else:
             print("APPLE EATEN!")
-            print(environment.apple_position)
-            print(individual.snake_head_coordinates)
             new_random_coordinates = np.random.randint(low=1, high=(environment.environment_size - 1), size=2)
             environment.apple_position = list(new_random_coordinates)
 
@@ -224,32 +234,35 @@ class NN_Engine:
     def get_fitness(self):
         individual = self.individual
 
-        print("In function")
-        print(f"Counter: {self.counter}")
-        print(f"Initial Epochs: {individual.initial_epochs}")
-        print(f"Score: {len(individual.occupied_blocks)}")
+        if self.fitness_function == "fitness_function_2":
+            pass
+        elif self.fitness_function == "fitness_function_3":
+            pass
+        else:
+            print(f"Counter: {self.counter}")
+            print(f"Initial Epochs: {individual.initial_epochs}")
+            print(f"Score: {len(individual.occupied_blocks)}")
 
-        steps = individual.initial_epochs - self.counter
-        score = len(individual.occupied_blocks)
-        print(f"Steps: {steps}")
+            steps = individual.initial_epochs - self.counter
+            score = len(individual.occupied_blocks)
+            print(f"Steps: {steps}")
 
-        fitness = ((2**((steps)/10)) * score )+ steps
-        individual.fitness = fitness
+            fitness = ((2**((steps)/10)) * score )+ steps
+            individual.fitness = fitness
 
     def __str__(self):
         return f"Direction Chosen: {self.chosen_direction()} \nNew Snake: {self.individual.occupied_blocks} \nNew Heading: {self.individual.heading}"   
 
 class Population:
-    def __init__(self, size, optim, **kwargs):
+    def __init__(self, size, optim, environment_used):
+        self.environment = environment_used
         self.individuals = []
         self.size = size
         self.optim = optim
         for _ in range(size):
             self.individuals.append(
                 Individual(
-                    size=kwargs["sol_size"],
-                    replacement=kwargs["replacement"],
-                    valid_set=kwargs["valid_set"],
+                    self.environment
                 )
             )
 

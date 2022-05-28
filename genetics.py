@@ -4,7 +4,9 @@ from random import shuffle, choice, sample, random
 from operator import attrgetter
 from copy import deepcopy
 import numpy as np
+import pandas as pd
 from random import shuffle, choice, sample, random
+from utils import da_informazione_a_conoscenza
 import math
 
 class Environment:
@@ -256,7 +258,8 @@ class NN_Engine:
         return f"Direction Chosen: {self.chosen_direction()} \nNew Snake: {self.individual.occupied_blocks} \nNew Heading: {self.individual.heading}"   
 
 class Population:
-    def __init__(self, size, optim, environment_used):
+    def __init__(self, size, optim, environment_used, informazione_df = None, informazione_meta = None):
+
         self.environment = environment_used
         self.individuals = []
         self.size = size
@@ -272,12 +275,15 @@ class Population:
             engine = NN_Engine(self.individuals[new_individual], environment_used)
             while self.individuals[new_individual].available_epochs > 0:
                 engine.update_individual_epoch()
+        self.informazione_df = informazione_df
+        self.informazione_meta = informazione_meta
 
+        column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps","average_fitness","phenotypic_variance", "genotypic_variance"]
+        self.informazione_df = pd.DataFrame(columns=column_names)
 
     def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism):
         for gen in range(gens):
             new_pop = []
-            print(gen)
 
             if elitism == True:
                 if self.optim == "max":
@@ -323,16 +329,28 @@ class Population:
 
             if elitism == True:
                 if self.optim == "max":
-                    least = min(new_pop, key=attrgetter("fitness"))
+                    least = min(new_pop, key=attrgetter("fitness")).representation
                 elif self.optim == "min":
-                    least = max(new_pop, key=attrgetter("fitness"))
-                new_pop.pop(new_pop.index([least]))
+                    least = max(new_pop, key=attrgetter("fitness")).representation
+                
+                new_pop_representations = []
+                for individual in new_pop:
+                    new_pop_representations.append(individual.representation)
+                index_to_drop = new_pop_representations.index(least)
+                new_pop.pop(index_to_drop)
                 new_pop.append(elite)
 
             self.individuals = new_pop
+            
+            #Calculating all of the necessary metrics for storage and further
+            result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
+            #Appending new row to df
+            self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
 
             if self.optim == "max":
                 print("Worked")
             elif self.optim == "min":
                 print(f'Best Individual: {min(self, key=attrgetter("fitness"))}')
+
+        self.informazione_meta = result[0]

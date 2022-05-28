@@ -22,12 +22,14 @@ population_1.evolve(
     mutate=inversion_mutation,
     co_p=0.9,
     mu_p=0.1, 
-    elitism=False
+    elitism=True
 )
 
 print(population_1.individuals[0].representation)
-print(population_1.individuals[1].representation)
+print(population_1.individuals[-1].representation)
 print("*********")
 print(population_1.individuals[0].fitness)
-print(population_1.individuals[1].fitness)
+print(population_1.individuals[-1].fitness)
 print("--- %s seconds ---" % (time.time() - start_time))
+print(population_1.informazione_df)
+print(population_1.informazione_meta)

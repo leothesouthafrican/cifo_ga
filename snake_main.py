@@ -1,34 +1,33 @@
+from attr import evolve
 import numpy as np
 import math
+import time
+start_time = time.time()
+
 from genetics import Individual, Environment, NN_Engine, Population
-
-from random import random
-from copy import deepcopy
-from operator import attrgetter
-
-
-environment_1 = Environment(environment_size=8)
+from crossover import *
+from mutation import *
+from selection import *
 
 
-population_1 = Population( size = 10, environment_used = environment_1, optim = "max")
 
-for i in population_1.individuals:
-    print(i.representation)
+environment_1 = Environment(environment_size=5)
 
+population_1 = Population(size = 100, environment_used = environment_1, optim = "max")
 
-snake_1 = Individual(environment_1, snake_head_coordinates = None, heading="N")
-engine_1 = NN_Engine(snake_1,environment_1)
+population_1.evolve(
+    gens=100,
+    select=tournament,
+    crossover=pmx_co,
+    mutate=inversion_mutation,
+    co_p=0.9,
+    mu_p=0.1, 
+    elitism=False
+)
 
-
-snake_1.distance_computer()
-
-print(snake_1.__str__())
-print("**********")
-
-while snake_1.available_epochs > 0:
-    engine_1.update_individual_epoch()
-
-    print(environment_1.__str__())
-    print(snake_1.__str__())
-    print("+++++++")
-print(snake_1.create_representation())
+print(population_1.individuals[0].representation)
+print(population_1.individuals[1].representation)
+print("*********")
+print(population_1.individuals[0].fitness)
+print(population_1.individuals[1].fitness)
+print("--- %s seconds ---" % (time.time() - start_time))

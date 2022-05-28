@@ -4,6 +4,7 @@ from random import shuffle, choice, sample, random
 from operator import attrgetter
 from copy import deepcopy
 import numpy as np
+from random import shuffle, choice, sample, random
 import math
 
 class Environment:
@@ -44,19 +45,19 @@ class Individual:
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 500,
+        available_epochs = 1000,
         fitness = None,
         fitness_function = "fitness_function_1",
     ):
 
         if matrix_weights_1 is None:
-            self.matrix_weights_1 = np.random.rand(4,5)
+            self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(4,5)).round(3)
         if matrix_weights_2 is None:
-            self.matrix_weights_2 = np.random.rand(5,3)
+            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(5,3)).round(3)
         if bias_vector_1 is None:
-            self.bias_vector_1 = np.random.rand(1,5)
+            self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,5)).round(3)
         if bias_vector_2 is None:
-            self.bias_vector_2 = np.random.rand(1,3)
+            self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
 
         self.environment = current_environment
         self.snake_head_coordinates = snake_head_coordinates
@@ -120,10 +121,14 @@ class Individual:
             self.relative_position = [distance_left, distance_forward, distance_right, round(np.sin(degrees),2)]
 
     def create_representation(self):
-        weights_1_vector = np.reshape(self.matrix_weights_1, (1,20))
-        weights_2_vector = np.reshape(self.matrix_weights_2, (1,15))
-        representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])
-        self.representation = representation
+        if self.representation == None:
+            weights_1_vector = np.reshape(self.matrix_weights_1, (1,20))
+            weights_2_vector = np.reshape(self.matrix_weights_2, (1,15))
+            representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])
+            representation = representation.tolist()[0]
+            self.representation = representation
+
+            return self.representation
 
     def __str__(self):
         return f"Av. Epoch: {self.available_epochs}\nCurrent relative position: {self.relative_position} \nCurrent Heading: {self.heading} \nCurrent Occupied Blocks: {self.occupied_blocks} \nSnake Fitness: {self.fitness}"
@@ -183,6 +188,7 @@ class NN_Engine:
         individual = self.individual
         environment = self.environment
         direction = self.chosen_direction()
+        
 
         if (direction == 0 and individual.heading == "N") or (direction == 2 and individual.heading == "S") or (direction == 1 and individual.heading == "W"):
             new_snake_head = list(np.asarray(individual.snake_head_coordinates) - np.asarray([1,0]))
@@ -234,20 +240,16 @@ class NN_Engine:
     def get_fitness(self):
         individual = self.individual
 
-        if self.fitness_function == "fitness_function_2":
+        if individual.fitness_function == "fitness_function_2":
             pass
-        elif self.fitness_function == "fitness_function_3":
+        elif individual.fitness_function == "fitness_function_3":
             pass
         else:
-            print(f"Counter: {self.counter}")
-            print(f"Initial Epochs: {individual.initial_epochs}")
-            print(f"Score: {len(individual.occupied_blocks)}")
 
             steps = individual.initial_epochs - self.counter
             score = len(individual.occupied_blocks)
-            print(f"Steps: {steps}")
 
-            fitness = ((2**((steps)/10)) * score )+ steps
+            fitness = 5*score + steps
             individual.fitness = fitness
 
     def __str__(self):
@@ -259,16 +261,23 @@ class Population:
         self.individuals = []
         self.size = size
         self.optim = optim
-        for _ in range(size):
+        for new_individual in range(size):
             self.individuals.append(
                 Individual(
                     self.environment
                 )
             )
+            self.individuals[new_individual].distance_computer()
+            self.individuals[new_individual].create_representation()
+            engine = NN_Engine(self.individuals[new_individual], environment_used)
+            while self.individuals[new_individual].available_epochs > 0:
+                engine.update_individual_epoch()
+
 
     def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism):
         for gen in range(gens):
             new_pop = []
+            print(gen)
 
             if elitism == True:
                 if self.optim == "max":
@@ -281,17 +290,36 @@ class Population:
                 # Crossover
                 if random() < co_p:
                     offspring1, offspring2 = crossover(parent1, parent2)
+                    print("Crossover happened")
                 else:
                     offspring1, offspring2 = parent1, parent2
+                    print("No crossover happened")
                 # Mutation
                 if random() < mu_p:
                     offspring1 = mutate(offspring1)
                 if random() < mu_p:
                     offspring2 = mutate(offspring2)
 
-                new_pop.append(Individual(representation=offspring1))
+                #create new_offspring_1
+                new_offspring_1 = Individual(self.environment, representation=offspring1)
+                #make him play
+                new_offspring_1.distance_computer()
+                engine = NN_Engine(new_offspring_1, self.environment)
+                while new_offspring_1.available_epochs > 0:
+                    engine.update_individual_epoch()
+                new_pop.append(new_offspring_1)
+
                 if len(new_pop) < self.size:
-                    new_pop.append(Individual(representation=offspring2))
+                    #create new_offspring_2
+                    new_offspring_2 = Individual(self.environment, representation=offspring2)
+                    #make him play
+                    new_offspring_2.distance_computer()
+                    engine = NN_Engine(new_offspring_2, self.environment)
+                    while new_offspring_2.available_epochs > 0:
+                        engine.update_individual_epoch()
+
+                    new_pop.append(new_offspring_2)
+                
 
             if elitism == True:
                 if self.optim == "max":
@@ -303,17 +331,8 @@ class Population:
 
             self.individuals = new_pop
 
+
             if self.optim == "max":
-                print(f'Best Individual: {max(self, key=attrgetter("fitness"))}')
+                print("Worked")
             elif self.optim == "min":
                 print(f'Best Individual: {min(self, key=attrgetter("fitness"))}')
-
-    def __len__(self):
-        return len(self.individuals)
-
-    def __getitem__(self, head_coordinates):
-        return self.individuals[head_coordinates]
-
-    def __repr__(self):
-        return f"Population(size={len(self.individuals)}, individual_size={len(self.individuals[0])})"
-

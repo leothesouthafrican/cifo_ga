@@ -47,17 +47,17 @@ class Individual:
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 5000,
+        available_epochs = 1000,
         fitness = None,
         fitness_function = "fitness_function_1",
     ):
 
         if matrix_weights_1 is None:
-            self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(4,5)).round(3)
+            self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(4,10)).round(3)
         if matrix_weights_2 is None:
-            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(5,3)).round(3)
+            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,3)).round(3)
         if bias_vector_1 is None:
-            self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,5)).round(3)
+            self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
         if bias_vector_2 is None:
             self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
 
@@ -124,8 +124,8 @@ class Individual:
 
     def create_representation(self):
         if self.representation == None:
-            weights_1_vector = np.reshape(self.matrix_weights_1, (1,20))
-            weights_2_vector = np.reshape(self.matrix_weights_2, (1,15))
+            weights_1_vector = np.reshape(self.matrix_weights_1, (1,40))
+            weights_2_vector = np.reshape(self.matrix_weights_2, (1,30))
             representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])
             representation = representation.tolist()[0]
             self.representation = representation
@@ -215,21 +215,18 @@ class NN_Engine:
         if self.check_for_apple():
             individual.occupied_blocks = individual.occupied_blocks[1:]
         else:
-            print("APPLE EATEN!")
             new_random_coordinates = np.random.randint(low=1, high=(environment.environment_size - 1), size=2)
             environment.apple_position = list(new_random_coordinates)
 
         if self.check_for_borders(individual.snake_head_coordinates):
             self.counter = individual.available_epochs
             #Get fitness
-            print("get fitness_border")
             individual.available_epochs = 0            
             self.get_fitness()
 
         elif self.check_for_occupied_block(individual.snake_head_coordinates):
             self.counter = individual.available_epochs
             #Get fitness
-            print("get fitness_occupied")
             individual.available_epochs = 0
             self.get_fitness()
 
@@ -251,7 +248,7 @@ class NN_Engine:
             steps = individual.initial_epochs - self.counter
             score = len(individual.occupied_blocks)
 
-            fitness = 5*score + steps
+            fitness = 150*score + steps
             individual.fitness = fitness
 
     def __str__(self):
@@ -297,10 +294,8 @@ class Population:
                 # Crossover
                 if random() < co_p:
                     offspring1, offspring2 = crossover(parent1, parent2)
-                    print("Crossover happened")
                 else:
                     offspring1, offspring2 = parent1, parent2
-                    print("No crossover happened")
                 # Mutation
                 if random() < mu_p:
                     offspring1 = mutate(offspring1)
@@ -344,15 +339,12 @@ class Population:
             self.individuals = new_pop
             
             #Calculating all of the necessary metrics for storage and further
+            print(f"Current Generation: {gens}")
             result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
             #Appending new row to df
             self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
 
-            if self.optim == "max":
-                print("Worked")
-            elif self.optim == "min":
-                print(f'Best Individual: {min(self, key=attrgetter("fitness"))}')
 
         self.informazione_meta = result[0]
         df_to_excel(self.informazione_df, self.informazione_meta)

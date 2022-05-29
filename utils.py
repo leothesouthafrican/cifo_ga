@@ -71,11 +71,7 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
     time_elapsed = time.time() - start_time
 
 
-    print(f"Dictionary: {temp_dictionary}")
-    print(f"Best fitness: {best_fitness}")
-    print(f"Average fitness: {average_fitness}")
-    print(f"Phenotypic Variance: {phenotypic_variance}")
-    print(f"Genotypic Variance: {genotypic_variance}")
+    print(f"Time Elapsed: {time_elapsed}")
 
     #Create a dataframe
     column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps", "average_fitness", "phenotypic_variance", "genotypic_variance", "time"]

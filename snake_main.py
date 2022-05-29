@@ -13,13 +13,13 @@ from selection import *
 
 environment_1 = Environment(environment_size=10)
 
-population_1 = Population(size = 50, environment_used = environment_1, optim = "max")
+population_1 = Population(size = 75, environment_used = environment_1, optim = "max")
 
 population_1.evolve(
     gens=500,
     select=tournament,
     crossover=pmx_co,
-    mutate=inversion_mutation,
+    mutate=swap_mutation,
     co_p=0.9,
     mu_p=0.1, 
     elitism=True

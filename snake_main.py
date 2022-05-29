@@ -11,12 +11,12 @@ from selection import *
 
 
 
-environment_1 = Environment(environment_size=5)
+environment_1 = Environment(environment_size=15)
 
-population_1 = Population(size = 100, environment_used = environment_1, optim = "max")
+population_1 = Population(size = 200, environment_used = environment_1, optim = "max")
 
 population_1.evolve(
-    gens=100,
+    gens=500,
     select=tournament,
     crossover=pmx_co,
     mutate=inversion_mutation,

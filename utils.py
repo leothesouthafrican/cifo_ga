@@ -15,9 +15,7 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
         population (list): a list containing individuals (object) in the population with all their attributes
     """
     
-    dir_list = os.listdir("./results")
-    last_item = dir_list[-1]
-    last_index = int(last_item.split("_")[2].split(".")[0])
+    
 
     #preprocessing
     select = str(select).split(" ")[1]
@@ -81,6 +79,18 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
 
     #Create a dataframe
     column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps", "average_fitness", "phenotypic_variance", "genotypic_variance", "time"]
-    series_to_append = pd.Series([best_fitness, best_fit_repr, best_fit_length, best_fit_steps, phenotypic_variance, genotypic_variance, time_elapsed], index = column_names)
+    series_to_append = pd.Series([best_fitness, best_fit_repr, best_fit_length, best_fit_steps,average_fitness, phenotypic_variance, genotypic_variance, time_elapsed], index = column_names)
     
     return temp_dictionary, series_to_append
+
+def df_to_excel(dataframe, dictionary):
+
+    dir_list = os.listdir("./results")
+
+    sub_dict = dictionary["meta_data"]
+    name = str(str(sub_dict["gens"]) +"_"+ sub_dict["select"] +"_"+ sub_dict["cross"] +"_"+ sub_dict["mutate"] +"_"+ str(sub_dict["co_p"]) +"_"+ str(sub_dict["mu_p"]) +"_"+ str(int(sub_dict["elitism"])) +"_"+ sub_dict["fitness_function"])
+
+    if name + ".xlsx" in dir_list:
+        suffix = input("Name exists: enter a suffix")
+        name = str(name +"_"+ suffix)
+    dataframe.to_excel('./results' + name + ".xlsx")

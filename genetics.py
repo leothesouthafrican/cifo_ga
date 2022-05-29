@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 from random import shuffle, choice, sample, random
-from utils import da_informazione_a_conoscenza
+from utils import da_informazione_a_conoscenza, df_to_excel
 import math
 
 class Environment:
@@ -47,7 +47,7 @@ class Individual:
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 1000,
+        available_epochs = 5000,
         fitness = None,
         fitness_function = "fitness_function_1",
     ):
@@ -273,6 +273,7 @@ class Population:
             self.individuals[new_individual].distance_computer()
             self.individuals[new_individual].create_representation()
             engine = NN_Engine(self.individuals[new_individual], environment_used)
+            
             while self.individuals[new_individual].available_epochs > 0:
                 engine.update_individual_epoch()
         self.informazione_df = informazione_df
@@ -354,3 +355,4 @@ class Population:
                 print(f'Best Individual: {min(self, key=attrgetter("fitness"))}')
 
         self.informazione_meta = result[0]
+        df_to_excel(self.informazione_df, self.informazione_meta)

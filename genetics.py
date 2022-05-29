@@ -49,7 +49,7 @@ class Individual:
         relative_position = [],
         available_epochs = 1000,
         fitness = None,
-        fitness_function = "fitness_function_1",
+        fitness_function = "fitness_function_3",
     ):
 
         if matrix_weights_1 is None:

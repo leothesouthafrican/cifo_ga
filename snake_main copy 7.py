@@ -18,7 +18,7 @@ population_1.evolve(
     gens=500,
     select=tournament,
     crossover=pmx_co,
-    mutate=inversion_mutation,
+    mutate=geometric_mutation(individual = None, mutation_step=0.001),
     co_p=0.9,
     mu_p=0.1, 
     elitism=True

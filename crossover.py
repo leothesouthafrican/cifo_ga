@@ -34,7 +34,7 @@ def geometric_co(p1,p2):
     offspring1 = [None] * len(p1)
     offspring2 = [None] * len(p1)
     # Set a value for alpha between 0 and 1
-    alpha_list = []
+    alpha_list = [None] * len(p1)
     for i in range(len(p1)):
         alpha_list[i] = uniform(0, 1)
         

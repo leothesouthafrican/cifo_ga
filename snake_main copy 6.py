@@ -17,7 +17,7 @@ population_1 = Population(size = 75, environment_used = environment_1, optim = "
 population_1.evolve(
     gens=500,
     select=tournament,
-    crossover=pmx_co,
+    crossover=geometric_co,
     mutate=inversion_mutation,
     co_p=0.9,
     mu_p=0.1, 

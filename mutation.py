@@ -2,7 +2,7 @@ from random import randint, sample, uniform
 
 
 def geometric_mutation(individual, mutation_step):
-    alpha_list = []
+    alpha_list = [None]*len(individual)
     
     for i in range(len(individual)):
         alpha_list[i] = uniform(-mutation_step, mutation_step)

@@ -238,16 +238,23 @@ class NN_Engine:
 
     def get_fitness(self):
         individual = self.individual
+        steps = individual.initial_epochs - self.counter
+        score = len(individual.occupied_blocks)
 
         if individual.fitness_function == "fitness_function_2":
-            pass
+            fitness  = score
+            individual.fitness = fitness
         elif individual.fitness_function == "fitness_function_3":
-            pass
+            if score <= 4:
+                fitness = 150*score + steps
+            elif score <= 6:
+                fitness = 250*score + steps
+            elif score <= 8:
+                fitness = 500*score + steps
+            else:
+                fitness = 1000*score + steps
+            individual.fitness = fitness
         else:
-
-            steps = individual.initial_epochs - self.counter
-            score = len(individual.occupied_blocks)
-
             fitness = 150*score + steps
             individual.fitness = fitness
 
@@ -339,7 +346,7 @@ class Population:
             self.individuals = new_pop
             
             #Calculating all of the necessary metrics for storage and further
-            print(f"Current Generation: {gens}")
+            print(f"Current Generation: {gen}")
             result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
             #Appending new row to df
@@ -347,4 +354,5 @@ class Population:
 
 
         self.informazione_meta = result[0]
+        self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
         df_to_excel(self.informazione_df, self.informazione_meta)

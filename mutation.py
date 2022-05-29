@@ -20,9 +20,11 @@ def swap_mutation(individual):
         Individual: Mutated Individual
     """
     # Get two mutation points
-    mut_points = sample(range(len(individual)), 2)
-    # Swap them
-    individual[mut_points[0]], individual[mut_points[1]] = individual[mut_points[1]], individual[mut_points[0]]
+    mut_points = sample(range(len(individual)), 20)
+
+    for i in range(10):
+        # Swap them
+        individual[mut_points[i]], individual[mut_points[19-i]] = individual[mut_points[19-i]], individual[mut_points[i]]
 
     return individual
 

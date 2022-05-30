@@ -14,7 +14,6 @@ def fps(population):
     if population.optim == "max":
         # Sum total fitness
         all_elements = [i.fitness for i in population.individuals]
-        print(f"All Elements: {all_elements}")
         total_fitness = sum([i.fitness for i in population.individuals])
         
         # Get a 'position' on the wheel

@@ -40,26 +40,38 @@ class Individual:
         current_environment,
         matrix_weights_1 = None,
         matrix_weights_2 = None,
+        matrix_weights_3 = None,
+        matrix_weights_4 = None,
         bias_vector_1 = None,
         bias_vector_2 = None,
+        bias_vector_3 = None,
+        bias_vector_4 = None,
         representation = None,
         snake_head_coordinates = None,
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 1000,
+        available_epochs = 300,
         fitness = None,
-        fitness_function = "fitness_function_3",
+        fitness_function = "fitness_function_1",
     ):
 
         if matrix_weights_1 is None:
             self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(4,10)).round(3)
         if matrix_weights_2 is None:
-            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,3)).round(3)
+            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,15)).round(3)
+        if matrix_weights_3 is None:
+            self.matrix_weights_3 = np.random.uniform(low=-1, high=1, size=(15,10)).round(3)
+        if matrix_weights_4 is None:
+            self.matrix_weights_4 = np.random.uniform(low=-1, high=1, size=(10,3)).round(3)
         if bias_vector_1 is None:
             self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
         if bias_vector_2 is None:
-            self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
+            self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,15)).round(3)
+        if bias_vector_3 is None:
+            self.bias_vector_3 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
+        if bias_vector_4 is None:
+            self.bias_vector_4 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
 
         self.environment = current_environment
         self.snake_head_coordinates = snake_head_coordinates
@@ -125,8 +137,10 @@ class Individual:
     def create_representation(self):
         if self.representation == None:
             weights_1_vector = np.reshape(self.matrix_weights_1, (1,40))
-            weights_2_vector = np.reshape(self.matrix_weights_2, (1,30))
-            representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])
+            weights_2_vector = np.reshape(self.matrix_weights_2, (1,150))
+            weights_3_vector = np.reshape(self.matrix_weights_3, (1,150))
+            weights_4_vector = np.reshape(self.matrix_weights_4, (1,30))
+            representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2,weights_3_vector,self.bias_vector_3])
             representation = representation.tolist()[0]
             self.representation = representation
 
@@ -155,7 +169,15 @@ class NN_Engine:
 
         activated_layer_1 = self.sigmoid(hidden_layer_1)
 
-        pre_output = np.dot(activated_layer_1,individual.matrix_weights_2) + individual.bias_vector_2
+        hidden_layer_2 = np.dot(activated_layer_1,individual.matrix_weights_2) + individual.bias_vector_2
+
+        activated_layer_2 = self.sigmoid(hidden_layer_2)
+
+        hidden_layer_3 = np.dot(activated_layer_2,individual.matrix_weights_3) + individual.bias_vector_3
+
+        activated_layer_3 = self.sigmoid(hidden_layer_3)
+
+        pre_output = np.dot(activated_layer_3,individual.matrix_weights_4) + individual.bias_vector_4
 
         final_output = self.softmax(pre_output)
 

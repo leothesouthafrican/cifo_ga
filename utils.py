@@ -15,8 +15,6 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
         population (list): a list containing individuals (object) in the population with all their attributes
     """
     
-    
-
     #preprocessing
     select = str(select).split(" ")[1]
     cross = str(cross).split(" ")[1]

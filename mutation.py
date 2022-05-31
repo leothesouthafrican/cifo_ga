@@ -48,9 +48,3 @@ def inversion_mutation(individual):
 
     return individual
 
-
-if __name__ == '__main__':
-    test = [6, 1, 3, 5, 2, 4, 7]
-    test = inversion_mutation(test)
-    print(test)
-

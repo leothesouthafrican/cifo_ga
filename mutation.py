@@ -1,7 +1,7 @@
 from random import randint, sample, uniform
 
 
-def geometric_mutation(individual, mutation_step):
+def geometric_mutation(individual, mutation_step = 0.05):
     alpha_list = [None]*len(individual)
     
     for i in range(len(individual)):

@@ -54,4 +54,3 @@ def tournament(population, size=10):
     else:
         raise Exception("No optimization specified (min or max).")
 
-

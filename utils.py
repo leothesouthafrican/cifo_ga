@@ -70,7 +70,7 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
     time_elapsed = time.time() - start_time
 
 
-    print(f"Time Elapsed: {time_elapsed}")
+    print(f"Time Elapsed: {round(time_elapsed, 3)}")
 
     #Create a dataframe
     column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps", "average_fitness", "phenotypic_variance", "genotypic_variance", "time"]

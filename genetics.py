@@ -41,11 +41,9 @@ class Individual:
         matrix_weights_1 = None,
         matrix_weights_2 = None,
         matrix_weights_3 = None,
-        matrix_weights_4 = None,
         bias_vector_1 = None,
         bias_vector_2 = None,
         bias_vector_3 = None,
-        bias_vector_4 = None,
         representation = None,
         snake_head_coordinates = None,
         heading = "N",
@@ -53,7 +51,7 @@ class Individual:
         relative_position = [],
         available_epochs = 2000,
         fitness = None,
-        fitness_function = "fitness_function_3",
+        fitness_function = "fitness_function_1",
     ):
 
         if matrix_weights_1 is None:
@@ -61,17 +59,13 @@ class Individual:
         if matrix_weights_2 is None:
             self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,15)).round(3)
         if matrix_weights_3 is None:
-            self.matrix_weights_3 = np.random.uniform(low=-1, high=1, size=(15,10)).round(3)
-        if matrix_weights_4 is None:
-            self.matrix_weights_4 = np.random.uniform(low=-1, high=1, size=(10,3)).round(3)
+            self.matrix_weights_3 = np.random.uniform(low=-1, high=1, size=(15,3)).round(3)
         if bias_vector_1 is None:
             self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
         if bias_vector_2 is None:
             self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,15)).round(3)
         if bias_vector_3 is None:
-            self.bias_vector_3 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
-        if bias_vector_4 is None:
-            self.bias_vector_4 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
+            self.bias_vector_3 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
 
         self.environment = current_environment
         self.snake_head_coordinates = snake_head_coordinates
@@ -138,8 +132,7 @@ class Individual:
         if self.representation == None:
             weights_1_vector = np.reshape(self.matrix_weights_1, (1,40))
             weights_2_vector = np.reshape(self.matrix_weights_2, (1,150))
-            weights_3_vector = np.reshape(self.matrix_weights_3, (1,150))
-            weights_4_vector = np.reshape(self.matrix_weights_4, (1,30))
+            weights_3_vector = np.reshape(self.matrix_weights_3, (1,45))
             representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2,weights_3_vector,self.bias_vector_3])
             representation = representation.tolist()[0]
             self.representation = representation
@@ -173,11 +166,7 @@ class NN_Engine:
 
         activated_layer_2 = self.sigmoid(hidden_layer_2)
 
-        hidden_layer_3 = np.dot(activated_layer_2,individual.matrix_weights_3) + individual.bias_vector_3
-
-        activated_layer_3 = self.sigmoid(hidden_layer_3)
-
-        pre_output = np.dot(activated_layer_3,individual.matrix_weights_4) + individual.bias_vector_4
+        pre_output = np.dot(activated_layer_2,individual.matrix_weights_3) + individual.bias_vector_3
 
         final_output = self.softmax(pre_output)
 
@@ -285,23 +274,25 @@ class NN_Engine:
                 fitness = 1000*score + steps
             individual.fitness = fitness
         else:
-            fitness = 150*score + steps
+            fitness = 250*score + steps
             individual.fitness = fitness
 
     def __str__(self):
         return f"Direction Chosen: {self.chosen_direction()} \nNew Snake: {self.individual.occupied_blocks} \nNew Heading: {self.individual.heading}"   
 
 class Population:
-    def __init__(self, size, optim, environment_used, informazione_df = None, informazione_meta = None):
+    def __init__(self, size, optim, environment_used, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1"):
 
         self.environment = environment_used
         self.individuals = []
         self.size = size
         self.optim = optim
+        self.fitness_used = fitness_used
         for new_individual in range(size):
             self.individuals.append(
                 Individual(
-                    self.environment
+                    self.environment,
+                    fitness_function = self.fitness_used
                 )
             )
             self.individuals[new_individual].distance_computer()
@@ -341,7 +332,7 @@ class Population:
                     offspring2 = mutate(offspring2)
 
                 #create new_offspring_1
-                new_offspring_1 = Individual(self.environment, representation=offspring1)
+                new_offspring_1 = Individual(self.environment, representation=offspring1, fitness_function= self.fitness_used)
                 #make him play
                 new_offspring_1.distance_computer()
                 engine = NN_Engine(new_offspring_1, self.environment)
@@ -351,7 +342,7 @@ class Population:
 
                 if len(new_pop) < self.size:
                     #create new_offspring_2
-                    new_offspring_2 = Individual(self.environment, representation=offspring2)
+                    new_offspring_2 = Individual(self.environment, representation=offspring2, fitness_function= self.fitness_used)
                     #make him play
                     new_offspring_2.distance_computer()
                     engine = NN_Engine(new_offspring_2, self.environment)

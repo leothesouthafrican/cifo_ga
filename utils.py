@@ -78,17 +78,11 @@ def da_informazione_a_conoscenza(population, gens,select, cross, mutate,co_p,mu_
     
     return temp_dictionary, series_to_append
 
-def df_to_excel(dataframe, dictionary, number_for_sheet):
+def df_to_excel(dataframe, dictionary):
     
     dir_list = os.listdir("./results")
 
     sub_dict = dictionary["meta_data"]
     name = str(str(sub_dict["gens"]) +"_"+ sub_dict["select"] +"_"+ sub_dict["cross"] +"_"+ sub_dict["mutate"] +"_"+ str(sub_dict["co_p"]) +"_"+ str(sub_dict["mu_p"]) +"_"+ str(int(sub_dict["elitism"])) +"_"+ sub_dict["fitness_function"])
-    try:
-        wb = load_workbook(name + ".xlsx", read_only=True)
-        if number_for_sheet in wb.sheetnames:
-            print('sheet1 exists')
-    except:
-        FileNotFoundError
     
-    dataframe.to_excel(r'./results/' + name + '.xlsx', sheet_name=number_for_sheet)
+    dataframe.to_excel(r'./results/' + name + '.xlsx')

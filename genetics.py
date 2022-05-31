@@ -316,76 +316,74 @@ class Population:
         column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps","average_fitness","phenotypic_variance", "genotypic_variance"]
         self.informazione_df = pd.DataFrame(columns=column_names)
 
-    def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism, number_runs=15, number_sheet = 0):
-        for run in range(number_runs):
-            for gen in range(gens):
-                new_pop = []
+    def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism):
+    
+        for gen in range(gens):
+            new_pop = []
 
-                if elitism == True:
-                    if self.optim == "max":
-                        elite = deepcopy(max(self.individuals, key=attrgetter("fitness")))
-                    elif self.optim == "min":
-                        elite = deepcopy(min(self.individuals, key=attrgetter("fitness")))
+            if elitism == True:
+                if self.optim == "max":
+                    elite = deepcopy(max(self.individuals, key=attrgetter("fitness")))
+                elif self.optim == "min":
+                    elite = deepcopy(min(self.individuals, key=attrgetter("fitness")))
 
-                while len(new_pop) < self.size:
-                    parent1, parent2 = select(self), select(self)
-                    # Crossover
-                    if random() < co_p:
-                        offspring1, offspring2 = crossover(parent1, parent2)
-                    else:
-                        offspring1, offspring2 = parent1, parent2
-                    # Mutation
-                    if random() < mu_p:
-                        offspring1 = mutate(offspring1)
-                    if random() < mu_p:
-                        offspring2 = mutate(offspring2)
+            while len(new_pop) < self.size:
+                parent1, parent2 = select(self), select(self)
+                # Crossover
+                if random() < co_p:
+                    offspring1, offspring2 = crossover(parent1, parent2)
+                else:
+                    offspring1, offspring2 = parent1, parent2
+                # Mutation
+                if random() < mu_p:
+                    offspring1 = mutate(offspring1)
+                if random() < mu_p:
+                    offspring2 = mutate(offspring2)
 
-                    #create new_offspring_1
-                    new_offspring_1 = Individual(self.environment, representation=offspring1)
+                #create new_offspring_1
+                new_offspring_1 = Individual(self.environment, representation=offspring1)
+                #make him play
+                new_offspring_1.distance_computer()
+                engine = NN_Engine(new_offspring_1, self.environment)
+                while new_offspring_1.available_epochs > 0:
+                    engine.update_individual_epoch()
+                new_pop.append(new_offspring_1)
+
+                if len(new_pop) < self.size:
+                    #create new_offspring_2
+                    new_offspring_2 = Individual(self.environment, representation=offspring2)
                     #make him play
-                    new_offspring_1.distance_computer()
-                    engine = NN_Engine(new_offspring_1, self.environment)
-                    while new_offspring_1.available_epochs > 0:
+                    new_offspring_2.distance_computer()
+                    engine = NN_Engine(new_offspring_2, self.environment)
+                    while new_offspring_2.available_epochs > 0:
                         engine.update_individual_epoch()
-                    new_pop.append(new_offspring_1)
 
-                    if len(new_pop) < self.size:
-                        #create new_offspring_2
-                        new_offspring_2 = Individual(self.environment, representation=offspring2)
-                        #make him play
-                        new_offspring_2.distance_computer()
-                        engine = NN_Engine(new_offspring_2, self.environment)
-                        while new_offspring_2.available_epochs > 0:
-                            engine.update_individual_epoch()
-
-                        new_pop.append(new_offspring_2)
-                    
-
-                if elitism == True:
-                    if self.optim == "max":
-                        least = min(new_pop, key=attrgetter("fitness")).representation
-                    elif self.optim == "min":
-                        least = max(new_pop, key=attrgetter("fitness")).representation
-                    
-                    new_pop_representations = []
-                    for individual in new_pop:
-                        new_pop_representations.append(individual.representation)
-                    index_to_drop = new_pop_representations.index(least)
-                    new_pop.pop(index_to_drop)
-                    new_pop.append(elite)
-
-                self.individuals = new_pop
+                    new_pop.append(new_offspring_2)
                 
-                #Calculating all of the necessary metrics for storage and further
-                print(f"Current Generation: {gen}")
-                result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
-                #Appending new row to df
-                self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
+            if elitism == True:
+                if self.optim == "max":
+                    least = min(new_pop, key=attrgetter("fitness")).representation
+                elif self.optim == "min":
+                    least = max(new_pop, key=attrgetter("fitness")).representation
+                
+                new_pop_representations = []
+                for individual in new_pop:
+                    new_pop_representations.append(individual.representation)
+                index_to_drop = new_pop_representations.index(least)
+                new_pop.pop(index_to_drop)
+                new_pop.append(elite)
+
+            self.individuals = new_pop
+            
+            #Calculating all of the necessary metrics for storage and further
+            print(f"Current Generation: {gen}")
+            result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
+
+            #Appending new row to df
+            self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
 
 
-            self.informazione_meta = result[0]
-            self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
-            sheet_name = "run_" + str(run)
-            number_sheet = sheet_name
-            df_to_excel(self.informazione_df, self.informazione_meta, number_for_sheet=number_sheet)
+        self.informazione_meta = result[0]
+        self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
+        df_to_excel(self.informazione_df, self.informazione_meta)

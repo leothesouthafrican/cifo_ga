@@ -23,6 +23,8 @@ population_1.evolve(
 	    elitism=True
 	)
 
+population_1 = Population(size = 75, environment_used = environment_1, optim = "max")
+
 population_1.evolve(
 	    gens=200,
 	    select=fps,

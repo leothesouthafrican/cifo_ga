@@ -5,4 +5,4 @@ Our goal is to teach a neural network to play the game and achieve good performa
 
 In order to run the program and generate the results as an excel file, run python snake_main.py after haing updated the game parameters in the same file.
 
-This project was carried out as part of the Computational Intelligence for Optimisation Masters Course at Nova IMS 
+This project was carried out as part of the Computational Intelligence for Optimisation Masters Course at Nova IMS. 

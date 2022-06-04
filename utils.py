@@ -88,7 +88,7 @@ def df_to_excel(dataframe, dictionary):
     dataframe.to_excel(r'./results/' + name + '.xlsx')
 
 def excel_concat(dictionary, gens):
-
+    
     sub_dict = dictionary["meta_data"]
     name = str(str(sub_dict["gens"]) +"_"+ sub_dict["select"] +"_"+ sub_dict["cross"] +"_"+ sub_dict["mutate"] +"_"+ str(sub_dict["co_p"]) +"_"+ str(sub_dict["mu_p"]) +"_"+ str(int(sub_dict["elitism"])) +"_"+ sub_dict["fitness_function"])
 

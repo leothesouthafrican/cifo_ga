@@ -326,7 +326,7 @@ class Population:
         self.size = size
         self.optim = optim
         self.fitness_used = fitness_used
-    
+        
         #Create a new individual for the specified population size
         for new_individual in range(size):
             self.individuals.append(

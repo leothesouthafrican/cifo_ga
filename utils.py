@@ -86,3 +86,17 @@ def df_to_excel(dataframe, dictionary):
     name = str(str(sub_dict["gens"]) +"_"+ sub_dict["select"] +"_"+ sub_dict["cross"] +"_"+ sub_dict["mutate"] +"_"+ str(sub_dict["co_p"]) +"_"+ str(sub_dict["mu_p"]) +"_"+ str(int(sub_dict["elitism"])) +"_"+ sub_dict["fitness_function"])
     
     dataframe.to_excel(r'./results/' + name + '.xlsx')
+
+def excel_concat(dictionary, gens):
+
+    sub_dict = dictionary["meta_data"]
+    name = str(str(sub_dict["gens"]) +"_"+ sub_dict["select"] +"_"+ sub_dict["cross"] +"_"+ sub_dict["mutate"] +"_"+ str(sub_dict["co_p"]) +"_"+ str(sub_dict["mu_p"]) +"_"+ str(int(sub_dict["elitism"])) +"_"+ sub_dict["fitness_function"])
+
+    df = pd.read_excel(r'./results/' + name + '.xlsx')
+    GROUP_LENGTH = gens + 1 # set nr of rows to slice df
+
+    with pd.ExcelWriter('output.xlsx') as writer:
+        for i in range(0, len(df), GROUP_LENGTH):
+            df[i : i+GROUP_LENGTH].to_excel(writer, sheet_name='Row {}'.format(i/gens), index=False, header=True)
+
+

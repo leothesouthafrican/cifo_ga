@@ -7,7 +7,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 from random import shuffle, choice, sample, random
-from utils import da_informazione_a_conoscenza, df_to_excel
+from utils import da_informazione_a_conoscenza, df_to_excel, excel_concat
 import math
 
 #Creating an environment class that holds all the attributes and methods related to creating the virutal environment that
@@ -326,7 +326,7 @@ class Population:
         self.size = size
         self.optim = optim
         self.fitness_used = fitness_used
-
+    
         #Create a new individual for the specified population size
         for new_individual in range(size):
             self.individuals.append(
@@ -354,77 +354,79 @@ class Population:
         self.informazione_df = pd.DataFrame(columns=column_names)
 
     #Evolve method that evolves the population given specific parameters
-    def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism):
-    
-        for gen in range(gens):
-            new_pop = []
+    def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism,runs):
+        for run in range(runs):
+            for gen in range(gens):
+                new_pop = []
 
-            if elitism == True:
-                if self.optim == "max":
-                    elite = deepcopy(max(self.individuals, key=attrgetter("fitness")))
-                elif self.optim == "min":
-                    elite = deepcopy(min(self.individuals, key=attrgetter("fitness")))
+                if elitism == True:
+                    if self.optim == "max":
+                        elite = deepcopy(max(self.individuals, key=attrgetter("fitness")))
+                    elif self.optim == "min":
+                        elite = deepcopy(min(self.individuals, key=attrgetter("fitness")))
 
-            while len(new_pop) < self.size:
-                parent1, parent2 = select(self), select(self)
-                # Crossover
-                if random() < co_p:
-                    offspring1, offspring2 = crossover(parent1, parent2)
-                else:
-                    offspring1, offspring2 = parent1, parent2
-                # Mutation
-                if random() < mu_p:
-                    offspring1 = mutate(offspring1)
-                if random() < mu_p:
-                    offspring2 = mutate(offspring2)
+                while len(new_pop) < self.size:
+                    parent1, parent2 = select(self), select(self)
+                    # Crossover
+                    if random() < co_p:
+                        offspring1, offspring2 = crossover(parent1, parent2)
+                    else:
+                        offspring1, offspring2 = parent1, parent2
+                    # Mutation
+                    if random() < mu_p:
+                        offspring1 = mutate(offspring1)
+                    if random() < mu_p:
+                        offspring2 = mutate(offspring2)
 
-                #create new_offspring_1
-                new_offspring_1 = Individual(self.environment, representation=offspring1, fitness_function= self.fitness_used)
-                #make him play
-                new_offspring_1.distance_computer()
-                engine = NN_Engine(new_offspring_1, self.environment)
-                while new_offspring_1.available_epochs > 0:
-                    engine.update_individual_epoch()
-                new_pop.append(new_offspring_1)
-
-                if len(new_pop) < self.size:
-                    #create new_offspring_2
-                    new_offspring_2 = Individual(self.environment, representation=offspring2, fitness_function= self.fitness_used)
+                    #create new_offspring_1
+                    new_offspring_1 = Individual(self.environment, representation=offspring1, fitness_function= self.fitness_used)
                     #make him play
-                    new_offspring_2.distance_computer()
-                    engine = NN_Engine(new_offspring_2, self.environment)
-                    while new_offspring_2.available_epochs > 0:
+                    new_offspring_1.distance_computer()
+                    engine = NN_Engine(new_offspring_1, self.environment)
+                    while new_offspring_1.available_epochs > 0:
                         engine.update_individual_epoch()
+                    new_pop.append(new_offspring_1)
 
-                    new_pop.append(new_offspring_2)
+                    if len(new_pop) < self.size:
+                        #create new_offspring_2
+                        new_offspring_2 = Individual(self.environment, representation=offspring2, fitness_function= self.fitness_used)
+                        #make him play
+                        new_offspring_2.distance_computer()
+                        engine = NN_Engine(new_offspring_2, self.environment)
+                        while new_offspring_2.available_epochs > 0:
+                            engine.update_individual_epoch()
+
+                        new_pop.append(new_offspring_2)
+                    
+
+                if elitism == True:
+                    if self.optim == "max":
+                        least = min(new_pop, key=attrgetter("fitness")).representation
+                    elif self.optim == "min":
+                        least = max(new_pop, key=attrgetter("fitness")).representation
+                    
+                    new_pop_representations = []
+                    for individual in new_pop:
+                        new_pop_representations.append(individual.representation)
+                    index_to_drop = new_pop_representations.index(least)
+                    new_pop.pop(index_to_drop)
+                    new_pop.append(elite)
+
+                self.individuals = new_pop
                 
+                #Calculating all of the necessary metrics for storage and further
+                print(f"Current Generation: {gen}")
+                result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
-            if elitism == True:
-                if self.optim == "max":
-                    least = min(new_pop, key=attrgetter("fitness")).representation
-                elif self.optim == "min":
-                    least = max(new_pop, key=attrgetter("fitness")).representation
-                
-                new_pop_representations = []
-                for individual in new_pop:
-                    new_pop_representations.append(individual.representation)
-                index_to_drop = new_pop_representations.index(least)
-                new_pop.pop(index_to_drop)
-                new_pop.append(elite)
+                #Appending new row to df
+                self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
 
-            self.individuals = new_pop
-            
-            #Calculating all of the necessary metrics for storage and further
-            print(f"Current Generation: {gen}")
-            result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
+            #Update the meta data dictionary
+            self.informazione_meta = result[0]
+            #Append the latest generation worth of metrics to the populations dataframe
+            self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
 
-            #Appending new row to df
-            self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
-
-        #Update the meta data dictionary
-        self.informazione_meta = result[0]
-        #Append the latest generation worth of metrics to the populations dataframe
-        self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
-
-        #Output all of the information to excel 
-        df_to_excel(self.informazione_df, self.informazione_meta)
+            #Output all of the information to excel 
+            df_to_excel(self.informazione_df, self.informazione_meta)
+        
+        excel_concat(self.informazione_meta, gens)

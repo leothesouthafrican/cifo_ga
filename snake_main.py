@@ -11,13 +11,13 @@ from selection import *
 environment_1 = Environment(environment_size=15)
 
 #Initializing population
-population_1 = Population(size = 50, environment_used = environment_1, optim = "max")
+population_1 = Population(size = 75, environment_used = environment_1, optim = "max", output_file_name = "test_1")
 
 if __name__ == "__main__":
     #Creating initial population
     population_1.create_initial_population()
     #Calling evolve method and passing example parameters
-    population_1.evolve(gens=3,select=fps,crossover=pmx_co,mutate=inversion_mutation,co_p=0.9,mu_p=0.1,elitism=True, runs=3)
+    population_1.evolve(gens=20,select=fps,crossover=pmx_co,mutate=inversion_mutation,co_p=0.9,mu_p=0.1,elitism=True, runs=5)
 
 
 

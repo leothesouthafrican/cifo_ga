@@ -319,16 +319,27 @@ class NN_Engine:
 
 #Population class that handles the initial creation of multiple individuals and then handles the evolution process through the evolve method
 class Population:
-    def __init__(self, size, optim, environment_used, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1"):
+    def __init__(self, size, optim, environment_used, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1"):
 
         self.environment = environment_used
         self.individuals = []
         self.size = size
         self.optim = optim
         self.fitness_used = fitness_used
-        
+        self.output_file_name = output_file_name
+
+        #Storing all of the meta data used in this generation with informazione_meta and storing all of the metrics using the informazione_df
+        self.informazione_df = informazione_df
+        self.informazione_meta = informazione_meta
+
+        #Creating base df for informazione_df
+        column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps","average_fitness","phenotypic_variance", "genotypic_variance"]
+        self.informazione_df = pd.DataFrame(columns=column_names)
+
+    def create_initial_population(self):   
+
         #Create a new individual for the specified population size
-        for new_individual in range(size):
+        for new_individual in range(self.size):
             self.individuals.append(
                 Individual(
                     self.environment,
@@ -340,18 +351,11 @@ class Population:
             self.individuals[new_individual].create_representation()
 
             #defining an engine for each of the new individuals
-            engine = NN_Engine(self.individuals[new_individual], environment_used)
+            engine = NN_Engine(self.individuals[new_individual], self.environment)
 
             #While each individual has available moves go through the process of moving, eating etc. 
             while self.individuals[new_individual].available_epochs > 0:
                 engine.update_individual_epoch()
-        
-        #Storing all of the meta data used in this generation with informazione_meta and storing all of the metrics using the informazione_df
-        self.informazione_df = informazione_df
-        self.informazione_meta = informazione_meta
-
-        column_names = ["best_fitness","best_fitness_representation","best_fit_length","best_fit_steps","average_fitness","phenotypic_variance", "genotypic_variance"]
-        self.informazione_df = pd.DataFrame(columns=column_names)
 
     #Evolve method that evolves the population given specific parameters
     def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism,runs):
@@ -398,7 +402,6 @@ class Population:
 
                         new_pop.append(new_offspring_2)
                     
-
                 if elitism == True:
                     if self.optim == "max":
                         least = min(new_pop, key=attrgetter("fitness")).representation
@@ -427,6 +430,11 @@ class Population:
             self.informazione_df = self.informazione_df.append(result[0], ignore_index=True)
 
             #Output all of the information to excel 
-            df_to_excel(self.informazione_df, self.informazione_meta)
-        
-        excel_concat(self.informazione_meta, gens)
+            df_to_excel(self.informazione_df, self.informazione_meta, run)
+
+            #Reset population
+            self.individuals = []
+            #Create fresh population
+            self.create_initial_population()
+
+        excel_concat(self.informazione_meta, gens, output_file_name=self.output_file_name)

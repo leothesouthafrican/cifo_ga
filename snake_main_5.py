@@ -11,9 +11,9 @@ from selection import *
 environment_1 = Environment(environment_size=15)
 
 #Initializing population
-population_1 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_16")
-population_2 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_17")
-population_3 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_18")
+population_1 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_16", individual_moves=750)
+population_2 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_17", individual_moves=750)
+population_3 = Population(size = 50, environment_used = environment_1, optim = "max", output_file_name = "test_18", individual_moves=750)
 
 if __name__ == "__main__":
     #Creating initial population

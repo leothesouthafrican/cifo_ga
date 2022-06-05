@@ -10,12 +10,12 @@ from random import shuffle, choice, sample, random
 from utils import da_informazione_a_conoscenza, df_to_excel, excel_concat
 import math
 
-#Creating an environment class that holds all the attributes and methods related to creating the virutal environment that
+#Creating an environment class that holds all the attributes and methods related to creating the virtual environment that
 #individual snakes operate within.
 
 class Environment:
     #Initialization
-    def __init__(self,apple_position = None, borders = [], environment_size = 20):
+    def __init__(self,apple_position = None, borders = [], environment_size = 12):
         self.apple_position = apple_position
         self.borders = borders
         self.environment_size = environment_size
@@ -62,7 +62,7 @@ class Individual:
         relative_position = [],
         available_epochs = 1500,
         fitness = None,
-        fitness_function = "fitness_function_1",
+        fitness_function = "fitness_function_3",
     ):
 
         #If the matrices used for the NN (the snakes brain) are not specifically set, randomly initialise them
@@ -319,13 +319,14 @@ class NN_Engine:
 
 #Population class that handles the initial creation of multiple individuals and then handles the evolution process through the evolve method
 class Population:
-    def __init__(self, size, optim, environment_used, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1"):
+    def __init__(self, size, optim, environment_used, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
 
         self.environment = environment_used
         self.individuals = []
         self.size = size
         self.optim = optim
         self.fitness_used = fitness_used
+        self.individual_moves = individual_moves
         self.output_file_name = output_file_name
 
         #Storing all of the meta data used in this generation with informazione_meta and storing all of the metrics using the informazione_df
@@ -343,7 +344,8 @@ class Population:
             self.individuals.append(
                 Individual(
                     self.environment,
-                    fitness_function = self.fitness_used
+                    fitness_function = self.fitness_used,
+                    available_epochs= self.individual_moves
                 )
             )
             #Now that we a new offspring we need to make it play so that we can feed the neural network

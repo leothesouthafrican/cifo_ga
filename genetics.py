@@ -60,7 +60,7 @@ class Individual:
         heading = "N",
         occupied_blocks = None,
         relative_position = [],
-        available_epochs = 2000,
+        available_epochs = 1500,
         fitness = None,
         fitness_function = "fitness_function_1",
     ):
@@ -311,7 +311,7 @@ class NN_Engine:
                 fitness = 1000*score + steps
             individual.fitness = fitness
         else:
-            fitness = 250*score + steps
+            fitness = 350*score + steps
             individual.fitness = fitness
 
     def __str__(self):

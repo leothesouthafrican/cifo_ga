@@ -319,11 +319,12 @@ class NN_Engine:
 
 #Population class that handles the initial creation of multiple individuals and then handles the evolution process through the evolve method
 class Population:
-    def __init__(self, size, optim, environment_used, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
+    def __init__(self, size, optim, environment_used,gens, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
 
         self.environment = environment_used
         self.individuals = []
         self.size = size
+        self.gens = gens
         self.optim = optim
         self.fitness_used = fitness_used
         self.individual_moves = individual_moves
@@ -360,9 +361,10 @@ class Population:
                 engine.update_individual_epoch()
 
     #Evolve method that evolves the population given specific parameters
-    def evolve(self, gens, select, crossover, mutate, co_p, mu_p, elitism,runs):
+    def evolve(self, select, crossover, mutate, co_p, mu_p, elitism,runs):
+        #Storing gens as an attribute
         for run in range(runs):
-            for gen in range(gens):
+            for gen in range(self.gens):
                 new_pop = []
 
                 if elitism == True:
@@ -421,7 +423,7 @@ class Population:
                 
                 #Calculating all of the necessary metrics for storage and further
                 print(f"Current Generation: {gen}")
-                result = da_informazione_a_conoscenza(self.individuals, gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
+                result = da_informazione_a_conoscenza(self.individuals, self.gens,select, crossover, mutate,co_p,mu_p,elitism,self.individuals[0].fitness_function)
 
                 #Appending new row to df
                 self.informazione_df = self.informazione_df.append(result[1], ignore_index=True)
@@ -439,4 +441,4 @@ class Population:
             #Create fresh population
             self.create_initial_population()
 
-        excel_concat(self.informazione_meta, gens, output_file_name=self.output_file_name)
+        excel_concat(self.informazione_meta, self.gens, output_file_name=self.output_file_name)

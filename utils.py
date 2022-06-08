@@ -95,7 +95,10 @@ def excel_concat(dictionary, gens,output_file_name,runs):
     df = pd.read_excel(r'./results/' + name + '.xlsx')
     GROUP_LENGTH = gens + 1 # set nr of rows to slice df
 
-    with pd.ExcelWriter(output_file_name +'.xlsx') as writer:
+    with pd.ExcelWriter(r'./results/' + output_file_name + '.xlsx') as writer:
         for i, count in zip(range(0, len(df), GROUP_LENGTH),range(runs)):
             df[i : i+GROUP_LENGTH].to_excel(writer, sheet_name='Run_{}'.format(count), index=False, header=True)
+    
+    #remove excel file with no sheets
+    os.remove(r'./results/' + name + '.xlsx')
 

@@ -319,12 +319,13 @@ class NN_Engine:
 
 #Population class that handles the initial creation of multiple individuals and then handles the evolution process through the evolve method
 class Population:
-    def __init__(self, size, optim, environment_used,gens, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
+    def __init__(self, size, optim, environment_used,gens,runs, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
 
         self.environment = environment_used
         self.individuals = []
         self.size = size
         self.gens = gens
+        self.runs = runs
         self.optim = optim
         self.fitness_used = fitness_used
         self.individual_moves = individual_moves
@@ -361,9 +362,9 @@ class Population:
                 engine.update_individual_epoch()
 
     #Evolve method that evolves the population given specific parameters
-    def evolve(self, select, crossover, mutate, co_p, mu_p, elitism,runs):
+    def evolve(self, select, crossover, mutate, co_p, mu_p, elitism):
         #Storing gens as an attribute
-        for run in range(runs):
+        for run in range(self.runs):
             for gen in range(self.gens):
                 new_pop = []
 
@@ -441,4 +442,4 @@ class Population:
             #Create fresh population
             self.create_initial_population()
 
-        excel_concat(self.informazione_meta, self.gens, output_file_name=self.output_file_name)
+        excel_concat(self.informazione_meta, self.gens, output_file_name=self.output_file_name, runs = self.runs)

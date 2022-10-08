@@ -12,9 +12,9 @@ from selection import *
 environment_1 = Environment(environment_size=12)
 
 #Initializing population
-population_1 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_22", individual_moves=500)
-population_2 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_23", individual_moves=500)
-population_3 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_24", individual_moves=500)
+population_1 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_22")
+population_2 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_23")
+population_3 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_24")
 
 #Initializing Analysis
 analysis_1 = Analysis(input_path = '/Users/leo/Desktop/nova/optimisation/other/cifo_ga/results/',output_path= r'/Users/leo/Desktop/nova/optimisation/other/cifo_ga/analysis_test/', population = population_1)

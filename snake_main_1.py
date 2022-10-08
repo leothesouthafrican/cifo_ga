@@ -12,12 +12,9 @@ from selection import *
 environment_1 = Environment(environment_size=12)
 
 #Initializing population
-population_1 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_1", individual_moves=500)
-population_2 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_2", individual_moves=500)
-population_3 = Population(size = 25,gens=5, runs = 3, environment_used = environment_1, optim = "max", output_file_name = "test_3", individual_moves=500)
-
-#Initializing Analysis
-analysis_1 = Analysis(input_path = '/Users/leo/Desktop/nova/optimisation/other/cifo_ga/results/',output_path= r'/Users/leo/Desktop/nova/optimisation/other/cifo_ga/analysis_test/', population = population_1)
+population_1 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_1")
+population_2 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_2")
+population_3 = Population(size = 100,gens=150, runs = 10, environment_used = environment_1, individual_moves=750, output_file_name = "test_3")
 
 if __name__ == "__main__":
 
@@ -32,8 +29,6 @@ if __name__ == "__main__":
     population_3.create_initial_population()
     #Calling evolve method and passing example parameters
     population_3.evolve(select=fps,crossover=pmx_co,mutate=geometric_mutation,co_p=0.9,mu_p=0.1,elitism=True)
-
-    #analysis_1.average_value_per_epoch([1,3,4,5,6,7])
 
 
 

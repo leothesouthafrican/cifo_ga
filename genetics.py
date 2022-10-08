@@ -62,22 +62,22 @@ class Individual:
         relative_position = [],
         available_epochs = 1500,
         fitness = None,
-        fitness_function = "fitness_function_3",
+        fitness_function = "fitness_function_4",
     ):
 
         #If the matrices used for the NN (the snakes brain) are not specifically set, randomly initialise them
         if matrix_weights_1 is None:
-            self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(4,10)).round(3)
+            self.matrix_weights_1 = np.random.uniform(low=-1, high=1, size=(3,10)).round(3)
         if matrix_weights_2 is None:
-            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,15)).round(3)
-        if matrix_weights_3 is None:
-            self.matrix_weights_3 = np.random.uniform(low=-1, high=1, size=(15,3)).round(3)
+            self.matrix_weights_2 = np.random.uniform(low=-1, high=1, size=(10,3)).round(3)
+        #if matrix_weights_3 is None:
+            #self.matrix_weights_3 = np.random.uniform(low=-1, high=1, size=(15,3)).round(3)
         if bias_vector_1 is None:
             self.bias_vector_1 = np.random.uniform(low=-1, high=1, size=(1,10)).round(3)
         if bias_vector_2 is None:
-            self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,15)).round(3)
-        if bias_vector_3 is None:
-            self.bias_vector_3 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
+            self.bias_vector_2 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
+        #if bias_vector_3 is None:
+            #self.bias_vector_3 = np.random.uniform(low=-1, high=1, size=(1,3)).round(3)
 
         #saving all these variables as class attributes
         self.environment = current_environment
@@ -147,9 +147,9 @@ class Individual:
     def create_representation(self):
         if self.representation == None:
             weights_1_vector = np.reshape(self.matrix_weights_1, (1,40))
-            weights_2_vector = np.reshape(self.matrix_weights_2, (1,150))
-            weights_3_vector = np.reshape(self.matrix_weights_3, (1,45))
-            representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2,weights_3_vector,self.bias_vector_3])
+            weights_2_vector = np.reshape(self.matrix_weights_2, (1,30))
+            #weights_3_vector = np.reshape(self.matrix_weights_3, (1,45))
+            representation = np.hstack([weights_1_vector,self.bias_vector_1,weights_2_vector,self.bias_vector_2])#,weights_3_vector,self.bias_vector_3])
             representation = representation.tolist()[0]
             self.representation = representation
 
@@ -183,11 +183,11 @@ class NN_Engine:
 
         activated_layer_1 = self.sigmoid(hidden_layer_1)
 
-        hidden_layer_2 = np.dot(activated_layer_1,individual.matrix_weights_2) + individual.bias_vector_2
+        pre_output = np.dot(activated_layer_1,individual.matrix_weights_2) + individual.bias_vector_2
 
-        activated_layer_2 = self.sigmoid(hidden_layer_2)
+        #activated_layer_2 = self.sigmoid(hidden_layer_2)
 
-        pre_output = np.dot(activated_layer_2,individual.matrix_weights_3) + individual.bias_vector_3
+        #pre_output = np.dot(activated_layer_2,individual.matrix_weights_3) + individual.bias_vector_3
 
         final_output = self.softmax(pre_output)
 
@@ -310,6 +310,9 @@ class NN_Engine:
             else:
                 fitness = 1000*score + steps
             individual.fitness = fitness
+
+        elif individual.fitness_function == "fitness_function_4":
+            individual.fitness = ((score*2)**2)*(steps**1.5)
         else:
             fitness = 350*score + steps
             individual.fitness = fitness
@@ -319,7 +322,7 @@ class NN_Engine:
 
 #Population class that handles the initial creation of multiple individuals and then handles the evolution process through the evolve method
 class Population:
-    def __init__(self, size, optim, environment_used,gens,runs, output_file_name, informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_1", individual_moves = 1500):
+    def __init__(self, size, environment_used,gens,runs, output_file_name, optim = "max", informazione_df = None, informazione_meta = None, fitness_used = "fitness_function_4", individual_moves = 1500):
 
         self.environment = environment_used
         self.individuals = []
